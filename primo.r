@@ -69,6 +69,18 @@ rebs: make object! [
 	funcdef-keyw: func [ ] [ " function" ]
 	prc: func [ t ] (either not debug [ [] ] [ [ prin rejoin [ "/*" t "*/" ] ] ])
 	
+	objdef-keyw: func [ ] [ "" ]
+	objdef-body-open: func [ ] [ "{" ]
+	objdef-body-close: func [ ] [ "}" ]			
+	objmember-def: func [ A ] [ join A ":" ]
+	objmember-sep: func [ ] [ "," ]
+	
+	arrdef-keyw: func [ ] [ "" ]
+	arrdef-body-open: func [ ] [ "[" ]
+	arrdef-body-close: func [ ] [ "]" ]			
+	arrmember-sep: func [ ] [ "," ]
+	
+	
 	compile-expr: func [ c lvl /local V W m typ i ] [
 		parse c [ 
 			[
@@ -85,6 +97,13 @@ rebs: make object! [
 								compile second m 0
 							pr funcdef-body-close
 							m: next next m ]
+						context [
+							pr objdef-keyw
+							pr objdef-body-open
+								compile/obj first m 0
+							pr objdef-body-close
+							m: next m							
+						]
 					] [
 						typ: type? get :W
 						case compose [ 
@@ -99,36 +118,92 @@ rebs: make object! [
 							( equal? typ do 'integer! )
 							[ pr to-string W ]
 					]]) :m 
-				| set W block! ( prin mold W ) ; todo -- add some json generation
+				| set W block! ( 
+					pr arrdef-keyw
+					pr arrdef-body-open
+					compile-exprs reduce W lvl
+					pr arrdef-body-close
+				)							
+
 		] m: ] m
 	]
 	
-	compile: func [ c lvl /local A m new ] [
+	compile: func [ c lvl /obj /arr /local A m new ] [
 		parse c  
 		[ some 
 			[ 
-				set A set-word! (pr variable-def A) m:
+				set A set-word! (either obj [ pr objmember-def A ] [ pr variable-def A ]) m:
 				(new: compile-expr m lvl) :new
-				(if zero? lvl [ pr statement-end ]) 
+				(if zero? lvl [ either obj [ pr objmember-sep ][ pr statement-end ] ]) ; todo v2 , separator not after last 
 				|	
 				m: word! (new: compile-expr m lvl) :new
 	]]]
+	compile-exprs: func [ c lvl /local A m new ] [
+		while [ not tail? c ] [
+			c: compile-expr c lvl
+			pr arrmember-sep					;todo - don't do separator at last
+		]
+	]
 ]
 
 t1: does [ rebs/compile [ abc: add 10 32 ] 0 ]
-t2: does [ rebs/compile [ abc: add 10 32 b: add 3 4 co: join "ja" "ne" print "janko" ] 0 ]
+t2: does [ rebs/compile [ abc: add 10 32 b: add 3 4 co: join "ja" "ne" ] 0 ]
 t3: does [ rebs/compile [ abc: add add 30 20 32 ] 0 ]
 t4: does [ rebs/compile [ sum: func [ a1 b1 ] [ ret: add 1 3 ] ] 0 ]
 t5: does [ rebs/compile [ sum: func [ a1 b1 ] [ ret: add a1 b1 ] ] 0 ]
 t6: does [ rebs/compile [ sum: func [ a1 b1 ] [ ret: add a1 join "janko" b1 ] ] 0 ]
-t6: does [ rebs/compile [ 
-		sum: func [ a1 b1 ] [ ret: add a1 join "janko" b1 ]
+t7: does [ rebs/compile [ 
+		sum: func [ a1 b1 ] [ ret: add a1 join "something" b1 ]
 		a: mod 100 200
-		c: "jaja"
+		c: "bobo"
 		blk: func [ a ] [ add a 100 ] 
 	] 0 
 ]
+t8: does [ rebs/compile [ 
+		person: context [
+			name: "Jimy"
+			age: 31
+		]
+	] 0 
+]
+t9: does [ rebs/compile [ 
+		person: context [
+			name: "Jimy"
+			age: 31
+			sayHi: func [ a ] [ join "hi, " a ]
+		]
+	] 0 
+]
+t10: does [
+	rebs/compile [ 
+		person: [ 1 2 3 ]
+	] 0 
+]
+t11: does [
+	rebs/compile [ 
+		person: context [
+			name: "Jimy"
+			age: 31
+			sayHi: func [ a ] [ join "hi, " a ]
+			tags: [ "pals" "jojo" "twit" ]
+		]
+	] 0 
+]
+t12: does [
+	rebs/compile [ 
+		person: context [
+			name: "Jimy"
+			sayHi: func [ a ] [ join "hi, " a ]
+			tags: [ "jojo" 123 ]
+			subobj: context [
+				a: 10
+				b: [ "jo" "no" [ 1 2 3 ] ]
+			]
+		]
+	] 0 
+]
 
-rel: does [ do %rebjs.r ]
+
+rel: does [ do %primo.r ]
 
 halt
