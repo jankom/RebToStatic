@@ -1,38 +1,33 @@
 REBOL [ 
 	description: {Compiler for a subset of rebol to more static (FP-ish) languages.
-		First will be javasript. Something like Go / Ocaml? / C? / Java? could also be
-		cool. You create a new language by setting the callbacks.
+		First will be javasript. Something like Go / ? could also be
+		cool. You could create a new language by setting the callbacks.
 		}
 	subset: {Compiler will work on a limited subset of rebol:
-		- SUPPORTS: functions, objects, serries, variables, closures, 
+		- SUPPORTS: functions, contexts, series, variables, closures, 
 			anonymouse functions
-		- DOESN'T SUPPORT: no refinements, static form for functions and 
-			everything
-		- runtime dynamic befaviour which will not be allowed will be a little
-			compensated with compile time macros, and in case of JavaScript Eval
-		}
+		- DOESN'T SUPPORT: refinements, no runtime mungling of code...
+		- runtime dynamic befaviour which could maybe be compensated with
+			- compile time macros?
+			- dialects producing rebol code that is then compiled?
+			- javascript eval?}
 	ideas: {
-		- when compiled code is checked for some basic correctness
+		- at compilation time the code is checked for some basic correctness
 		- if static langs compilation would use rebol's optional types
 			in case if target supports overloading it could create multiple functions 
 			if more than 1 type allowed.
-		- settings like no silent globals alowed that could be off/on
-		- for javascript.. a dummy browser model would be provided. If possible
-			it could be made to fully simulate the core of the browser DOM
-		- you could have dialects that geenrate code and then compile
-		}
-	point: {the point is not that I am such rebol fanatic *that* I want to
-		code my javascript in rebol. I love REBOL, but such thing also has 
-		many negative sides, like indirection, additional step, harder debugging.
+		- for javascript. a dummy browser model (DOM) would have be provided. If possible
+			it could be made to fully simulate the core of the browser DOM}
+	point: {The point of this is not that I am **such** REBOL fanatic that I want to
+		code my JavaScript in REBOL. I love REBOL, but such thing also has 
+		many negative sides, like indirection, additional step of compilation, harder debugging.
 		***It is that I want to share the codebase between client and server, and 
-		server is written in REBOL***
-	}
+		server is written in REBOL and I want to stay at REBOL. The other option is that
+		I go to javascript for both. I like JavaScript bit I prefer REBOL a lot.***}
 	TODO: {=Todo for Primo=
-		- add support for JSON data structures and see where it brings us in terms
-			of support for JS objects too
 		- add support for basic if either foreach
 		- start experimenting with enabling simple DOM manipulation code
-	}
+		- start looking at jsGoo and see what else do you need to port it in Primo}
 ]
 
 accumulate: func [ 'word 'accum start data body ] [
@@ -146,6 +141,8 @@ rebs: make object! [
 	]
 ]
 
+; TO BE TESTS -->
+
 t1: does [ rebs/compile [ abc: add 10 32 ] 0 ]
 t2: does [ rebs/compile [ abc: add 10 32 b: add 3 4 co: join "ja" "ne" ] 0 ]
 t3: does [ rebs/compile [ abc: add add 30 20 32 ] 0 ]
@@ -203,7 +200,5 @@ t12: does [
 	] 0 
 ]
 
-
 rel: does [ do %primo.r ]
-
 halt
