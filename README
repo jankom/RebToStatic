@@ -4,7 +4,6 @@ What is RebToStatic
 Compiler for a subset of rebol to more static (FP-ish) languages, concretely 
 this means JavaScript for now.
 
-
 Example of current state:
 =========================
 
@@ -36,8 +35,14 @@ person: context [
 ---
 
 to this:
+---
 var person = {name:"Jimy",sayHi: function(a){join("hi, ",a)},tags:["jojo",123,],
 subobj:{a:10,b:["jo","no",[1,2,3,],],},};
+---
+
+The code is very early in development. As you can see the generated JavaScript 
+is not perfect. there are no returns for now and "," separators shouldn't be there
+after the last element of array or object.
 
 
 MIT License
